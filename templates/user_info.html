@@ -10,6 +10,29 @@
               <li>First Name: {{user.first_name}}</li>
               <li>Last Name: {{user.last_name}}</li>
           </ul>
+          <p>
+          <a href="/users/{{user.username}}/feedback/add" class="btn btn-info btn-sm">Add Feedback</a>
+          <form>
+            <button class="btn btn-danger btn-sm"
+                    formaction="/users/{{ user.username }}/delete"
+                    formmethod="POST"> Delete User
+            </button>
+          </form> 
+        </p>
       </div>
+
+      <hr>
+
+
+      {% for fb in feedback %}
+      <div class="card" style="width: 18rem;">
+        <div class="card-body">
+          <h5 class="card-title">{{fb.title}}</h5>
+          <p class="card-text">{{fb.content}}</p>
+          <p><em>~{{fb.username}}</em></p>       
+        </div>
+      </div>
+      {% endfor %}
+
 
 {% endblock %}
