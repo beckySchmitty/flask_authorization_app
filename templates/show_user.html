@@ -24,13 +24,26 @@
       <hr>
 
 
-      {% for fb in feedback %}
+      {% for fb in user.feedback %}
       <div class="card" style="width: 18rem;">
         <div class="card-body">
           <h5 class="card-title">{{fb.title}}</h5>
           <p class="card-text">{{fb.content}}</p>
           <p><em>~{{fb.username}}</em></p>       
         </div>
+        <form>
+          {{form.hidden_tag()}}
+          <button class="btn btn-primary"
+                  formmethod="GET"
+                  formaction="/feedback/{{ fb.id }}/update">
+            Edit
+          </button>
+          <button class="btn btn-danger"
+                  formmethod="POST"
+                  formaction="/feedback/{{ fb.id }}/delete">
+            Delete
+          </button>
+        </form>
       </div>
       {% endfor %}
 

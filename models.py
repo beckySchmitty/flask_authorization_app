@@ -44,20 +44,20 @@ class User(db.Model):
 
     @classmethod
     def authenticate(cls, username, password):
-            """Check user input password with hashed password in db"""
+        """Check user input password with hashed password in db"""
 
-            user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username).first()
 
-            if (bcrypt.check_password_hash(user.password, password)):
-                return True
-            else:
-                False
+        if user and bcrypt.check_password_hash(user.password, password):
+            return user
+        else:
+            False
 
 class Feedback(db.Model):
-        __tablename__ = "feedback"
+    __tablename__ = "feedback"
 
-        id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-        title = db.Column(db.String(100), nullable=False)
-        content = db.Column(db.String, nullable=False)
-        username = db.Column(db.String(20), db.ForeignKey('users.username'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.String, nullable=False)
+    username = db.Column(db.String(20), db.ForeignKey('users.username'), nullable=False)
     

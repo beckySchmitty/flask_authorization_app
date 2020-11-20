@@ -1,13 +1,12 @@
 from flask import Flask, request, render_template, redirect, flash, jsonify, session
 from flask_debugtoolbar import DebugToolbarExtension 
 from models import db, connect_db, User, Feedback
-from forms import RegisterUserForm, LoginUserForm, FeedbackForm, DeleteForm
+from forms import RegisterUserForm, LoginForm, FeedbackForm, DeleteForm
 from werkzeug.exceptions import Unauthorized
 
 app = Flask(__name__)
 # calling Flask class 
 
-# connect to specific database in postgresql
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///flask_feedback'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
@@ -44,18 +43,27 @@ def handle_register_form():
 
 @app.route('/login', methods=["GET", "POST"])
 def handle_login():
-    form = LoginUserForm()
+
+    if "username" in session:
+        return redirect(f"/users/{session['username']}")
+
+    form = LoginForm()
 
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
 
-        if (User.authenticate(username, password)):
+        user = User.authenticate(username, password)  # <User> or False
+        if user:
             session['username'] = username
             return redirect(f"/users/{username}")
-    
-    return render_template('login.html', form=form)
+        else:
+            form.username.errors = ["Invalid username/password."]
+            return render_template("login.html", form=form)
 
+    return render_template("login.html", form=form)
+
+    
 @app.route('/users/<username>/delete', methods=["POST"])
 def delete_user(username):
     """Delete user from database, delete all feedback, remove from session """
@@ -68,19 +76,21 @@ def delete_user(username):
 
     flash(f'{username} deleted', 'success')
     return redirect('/')
-  
 
 
 @app.route('/users/<username>')
 def show_secret_page(username):
     """show logged in user, their user info"""
+
     if 'username' in session:
-        user = User.query.filter_by(username=username).first()
-        feedback = user.feedback
-        return render_template('user_info.html', user=user, feedback=feedback)
+        user = User.query.get(username)
+        form = DeleteForm()
+
+        return render_template('show_user.html', user=user, form=form)
     else:
         raise Unauthorized()
     
+
 @app.route('/logout')
 def logout_user():
     """clear session and redirect"""
@@ -114,7 +124,9 @@ def handle_add_feedbackform(username):
 @app.route('/feedback/<int:feedback_id>/update', methods=["GET", "POST"])
 def handle_update_feedback(feedback_id):
     """Show update-feedback form and process it."""
+
     feedback = Feedback.query.get(feedback_id)
+
     if 'username' not in session or feedback.username != session['username']: 
         raise Unauthorized()
 
